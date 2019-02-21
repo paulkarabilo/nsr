@@ -1,0 +1,14 @@
+{
+  "name": "napi-experiment",
+  "version": "0.0.1",
+  "description": "node napi poc",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "pk",
+  "license": "ISC",
+  "dependencies": {
+    "bindings": "^1.4.0"
+  }
+}
