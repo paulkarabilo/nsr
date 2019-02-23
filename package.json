@@ -4,7 +4,12 @@
   "description": "node napi poc",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "configure": "node-gyp configure",
+    "build": "node-gyp build",
+    "build:debug": "node-gyp build -debug",
+    "rebuild": "node-gyp rebuild",
+    "rebuild:debug": "node-gyp rebuild -debug"
   },
   "author": "pk",
   "license": "ISC",
