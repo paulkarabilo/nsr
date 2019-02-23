@@ -12,7 +12,6 @@ napi_value Server(napi_env env, napi_callback_info info) {
   struct uv_loop_s* loop;
   NAPI_ASSERT(napi_get_uv_event_loop(env, &loop));
   nsr_srv_t* srv = nsr_srv_init(loop);
-  printf("CREATING\n");
   NAPI_ASSERT(napi_get_cb_info(env, info, NULL, NULL, &_this, NULL));
   NAPI_ASSERT(napi_wrap(env, _this, srv, destroy, NULL, NULL));
   return _this;
@@ -21,10 +20,11 @@ napi_value Server(napi_env env, napi_callback_info info) {
 static napi_value listen(napi_env env, napi_callback_info info) {
   size_t argc = 1;
   napi_value args[1];
-  NAPI_ASSERT(napi_get_cb_info(env, info, &argc, args, NULL, NULL));
-
+  napi_value _this;
+  nsr_srv_t* srv;
+  NAPI_ASSERT(napi_get_cb_info(env, info, &argc, args, &_this, NULL));
+  NAPI_ASSERT(napi_unwrap(env, _this, (void*)(&srv)));
   NAPI_ASSERT(argc == 1);
-  printf("CALLING\n");
   return NULL;
 }
 
