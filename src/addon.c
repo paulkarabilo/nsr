@@ -24,16 +24,35 @@ static napi_value listen(napi_env env, napi_callback_info info) {
   nsr_srv_t* srv;
   NAPI_ASSERT(napi_get_cb_info(env, info, &argc, args, &_this, NULL));
   NAPI_ASSERT(napi_unwrap(env, _this, (void*)(&srv)));
+  nsr_callback_trigger(env, srv->callbacks, "connect", 0, NULL);
   NAPI_ASSERT(argc == 1);
+  return NULL;
+}
+
+static napi_value on(napi_env env, napi_callback_info info) {
+  size_t argc = 2;
+  napi_value args[2];
+  napi_value _this;
+  nsr_srv_t* srv;
+  NAPI_ASSERT(napi_get_cb_info(env, info, &argc, args, &_this, NULL));
+  NAPI_ASSERT(napi_unwrap(env, _this, (void*)(&srv)));
+  size_t length;
+  NAPI_ASSERT(napi_get_value_string_utf8(env, args[0], NULL, 0, &length));
+  char* key = calloc(length + 1, sizeof(char));
+  NAPI_ASSERT(napi_get_value_string_utf8(env, args[0], key, length + 1, NULL));
+  napi_ref ref;
+  NAPI_ASSERT(napi_create_reference(env, args[1], 1, &ref));
+  nsr_callback_map_add(srv->callbacks, key, ref);
   return NULL;
 }
 
 napi_value create_addon(napi_env env, napi_value exports) {
   napi_property_descriptor methods[] = {
     DECLARE_NAPI_PROPERTY("listen", listen),
+    DECLARE_NAPI_PROPERTY("on", on),
   };
   napi_value nsr;
-  NAPI_ASSERT(napi_define_class(env, "Server", -1, Server, NULL, 1, methods, &nsr));
+  NAPI_ASSERT(napi_define_class(env, "Server", -1, Server, NULL, 2, methods, &nsr));
   NAPI_ASSERT(napi_create_reference(env, nsr, 1, &nsr_ctor));
   NAPI_ASSERT(napi_set_named_property(env, exports, "Server", nsr));
 

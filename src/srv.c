@@ -2,6 +2,7 @@
 
 nsr_srv_t* nsr_srv_init(uv_loop_t* loop) {
   nsr_srv_t* srv = malloc(sizeof(nsr_srv_t));
+  srv->callbacks = nsr_callback_map_init();
   srv->loop = loop;
   return srv;
 }
