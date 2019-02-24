@@ -25,6 +25,7 @@ nsr_callback_item_t* nsr_callback_item_init(char* key, napi_ref fn) {
   item->functions = calloc(item->size, sizeof(napi_ref));
   item->functions[0] = fn;
   item->count = 1;
+  item->next = NULL;
   return item;
 }
 
