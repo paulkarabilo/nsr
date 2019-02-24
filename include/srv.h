@@ -1,7 +1,10 @@
 #include <node_api.h>
 #include <stdlib.h>
+#include <node_version.h>
+#if NODE_MAJOR_VERSION == 11
 #include <js_native_api.h>
 #include <js_native_api_types.h>
+#endif
 #include "callbacks.h"
 
 typedef struct uv_loop_s uv_loop_t;
