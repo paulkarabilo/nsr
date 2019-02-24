@@ -17,3 +17,14 @@ test('emits events', done => {
     });
     s.emit('event', 'test');
 });
+
+test('sets multiple listeners', done => {
+    const s = new nsr.Server();
+    Array(129).fill(0).forEach((v, i) => {
+        s.on('event', (val) => {
+            expect(val).toBe('test');
+            if (i === 128) done();
+        });
+    });
+    s.emit('event', 'test');
+})

@@ -31,7 +31,7 @@ nsr_callback_item_t* nsr_callback_item_init(char* key, napi_ref fn) {
 
 void nsr_callback_item_grow(nsr_callback_item_t* item) {
   item->size *= 2;
-  item->functions = realloc(item->size, sizeof(napi_ref));
+  item->functions = realloc(item->functions, item->size * sizeof(napi_ref));
 }
 
 void nsr_callback_item_add(nsr_callback_item_t* item, napi_ref fn) {
