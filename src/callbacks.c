@@ -42,22 +42,27 @@ void nsr_callback_item_add(nsr_callback_item_t* item, napi_ref fn) {
   item->count++;
 }
 
-void nsr_callback_item_free(nsr_callback_item_t* item) {
+void nsr_callback_item_free(napi_env env, nsr_callback_item_t* item) {
   free(item->key);
   for (int i = 0; i < item->count; i++) {
     if (item->functions[i] != NULL) {
-      free(item->functions[i]);
+      NAPI_ASSERT(napi_delete_reference(env, item->functions[i]));
     }
   }
+  nsr_callback_item_t* next = item->next;
   free(item->functions);
   free(item);
+  if (next != NULL) {
+    nsr_callback_item_free(env, next);
+  }
 }
 
-void nsr_callback_map_free(nsr_callback_map_t* map) {
+void nsr_callback_map_free(napi_env env, nsr_callback_map_t* map) {
   for (int i = 0; i < CALLBACK_BUCKET_COUNT; i++) {
-    nsr_callback_item_free(map->items[i]);
+    if (map->items[i] != NULL) {
+      nsr_callback_item_free(env, map->items[i]);
+    }
   }
-  free(map->items);
   free(map);
 }
 

@@ -14,4 +14,4 @@ typedef struct nsr_srv_s {
 
 nsr_srv_t* nsr_srv_init(uv_loop_t* loop);
 void nsr_srv_start(nsr_srv_t* src, char* host, int port);
-void nsr_srv_free(nsr_srv_t* srv);
+void nsr_srv_free(napi_env env, nsr_srv_t* srv);

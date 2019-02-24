@@ -15,7 +15,7 @@ typedef struct nsr_callback_map_s {
 
 nsr_callback_map_t* nsr_callback_map_init();
 nsr_callback_item_t* nsr_callback_item_init(char* key, napi_ref fn);
-void nsr_callback_map_free(nsr_callback_map_t* map);
-void nsr_callback_item_free(nsr_callback_item_t* item);
+void nsr_callback_map_free(napi_env env, nsr_callback_map_t* map);
+void nsr_callback_item_free(napi_env env, nsr_callback_item_t* item);
 void nsr_callback_map_add(nsr_callback_map_t* map, char* key, napi_ref fn);
 void nsr_callback_trigger(napi_env env, nsr_callback_map_t* map, char* event, int argc, napi_value* argv);

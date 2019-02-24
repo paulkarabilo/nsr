@@ -4,7 +4,7 @@
 static napi_ref nsr_ctor;
 
 void destroy(napi_env env, void* object, void* hint) {
-  nsr_srv_free((nsr_srv_t*)object);
+  nsr_srv_free(env, (nsr_srv_t*)object);
 }
 
 napi_value Server(napi_env env, napi_callback_info info) {
