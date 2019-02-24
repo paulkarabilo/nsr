@@ -9,22 +9,23 @@ test('instantiates Server', () => {
     expect(s instanceof nsr.Server).toBe(true);
 });
 
-test('emits events', done => {
+test('emits events', () => {
     const s = new nsr.Server();
-    s.on('event', (val) => {
-        expect(val).toBe('test');
-        done();
-    });
+    const fn = jest.fn();
+
+    s.on('event', fn);
     s.emit('event', 'test');
+    expect(fn).toHaveBeenCalledTimes(1);
+    expect(fn).toHaveBeenCalledWith('test');
 });
 
-test('sets multiple listeners', done => {
+test('sets multiple listeners', () => {
     const s = new nsr.Server();
-    Array(129).fill(0).forEach((v, i) => {
-        s.on('event', (val) => {
-            expect(val).toBe('test');
-            if (i === 128) done();
-        });
+    const fn = jest.fn()
+    Array(200).fill(0).forEach((v, i) => {
+        s.on('event', fn);
     });
     s.emit('event', 'test');
+    expect(fn).toHaveBeenCalledTimes(200);
+    expect(fn).toHaveBeenCalledWith('test');
 })
