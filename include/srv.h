@@ -1,4 +1,5 @@
 #include <node_api.h>
+#include <stdlib.h>
 #include <js_native_api.h>
 #include <js_native_api_types.h>
 #include "callbacks.h"

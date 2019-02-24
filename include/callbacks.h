@@ -1,4 +1,6 @@
 #include <node_api.h>
+#include <stdlib.h>
+#include <string.h>
 #define CALLBACK_BUCKET_COUNT 128
 
 typedef struct nsr_callback_item_s {

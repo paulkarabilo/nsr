@@ -1,10 +1,20 @@
 #include "callbacks.h"
 #include "addon.h"
 
+char* nsr_strdup(char *src) {
+    int len = strlen(src);
+    char* res = malloc(len + 1);
+    char* p = res;
+    while (*src)
+        *p++ = *src++;
+    *p = '\0';
+    return res;
+}
+
 static int hash(char* s) {
   unsigned long hash = 5381;
   int c;
-  while (c = *s++) {
+  while ((c = *s++)) {
     hash = ((hash << 5) + hash) + c;
   }
   return (int)(hash % CALLBACK_BUCKET_COUNT);
@@ -20,7 +30,7 @@ nsr_callback_map_t* nsr_callback_map_init() {
 
 nsr_callback_item_t* nsr_callback_item_init(char* key, napi_ref fn) {
   nsr_callback_item_t* item = malloc(sizeof(nsr_callback_item_t));
-  item->key = strdup(key);
+  item->key = nsr_strdup(key);
   item->size = 128;
   item->functions = calloc(item->size, sizeof(napi_ref));
   item->functions[0] = fn;
