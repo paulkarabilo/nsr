@@ -17,13 +17,16 @@ napi_value Server(napi_env env, napi_callback_info info) {
   return _this;
 }
 
-static napi_value listen(napi_env env, napi_callback_info info) {
+static napi_value do_listen(napi_env env, napi_callback_info info) {
+  printf("CALL START\n");
+
   size_t argc = 1;
   napi_value args[1];
   napi_value _this;
   nsr_srv_t* srv;
   NAPI_ASSERT(napi_get_cb_info(env, info, &argc, args, &_this, NULL));
   NAPI_ASSERT(napi_unwrap(env, _this, (void*)(&srv)));
+  nsr_srv_start(srv, "0.0.0.0", 8000);
   nsr_callback_trigger(env, srv->callbacks, "connect", 0, NULL);
   NAPI_ASSERT(argc == 1);
   return NULL;
@@ -68,7 +71,7 @@ static napi_value emit(napi_env env, napi_callback_info info) {
 
 napi_value create_addon(napi_env env, napi_value exports) {
   napi_property_descriptor methods[] = {
-    DECLARE_NAPI_PROPERTY("listen", listen),
+    DECLARE_NAPI_PROPERTY("listen", do_listen),
     DECLARE_NAPI_PROPERTY("on", on),
     DECLARE_NAPI_PROPERTY("emit", emit),
   };
