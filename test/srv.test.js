@@ -28,4 +28,27 @@ test('sets multiple listeners', () => {
     s.emit('event', 'test');
     expect(fn).toHaveBeenCalledTimes(200);
     expect(fn).toHaveBeenCalledWith('test');
+});
+
+test('servers events are isolated', () => {
+    const s1 = new nsr.Server();
+    const fn1 = jest.fn();
+    const s2 = new nsr.Server();
+    const fn2 = jest.fn();
+
+    s1.on('event1', fn1);
+    s2.on('event2', fn2);
+
+    s1.emit('event1', 'test1');
+    s2.emit('event1', 'test1');
+    expect(fn1).toHaveBeenCalledWith('test1');
+    expect(fn1).toHaveBeenCalledTimes(1);
+    expect(fn2).not.toHaveBeenCalled();
+
+    s1.emit('event2', 'test2');
+    s2.emit('event2', 'test2');
+    expect(fn1).toHaveBeenCalledWith('test1');
+    expect(fn1).toHaveBeenCalledTimes(1);
+    expect(fn2).toHaveBeenCalledWith('test2');
+    expect(fn2).toHaveBeenCalledTimes(1);
 })
