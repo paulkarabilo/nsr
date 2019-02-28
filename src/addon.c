@@ -18,13 +18,7 @@ napi_value Server(napi_env env, napi_callback_info info) {
 }
 
 static napi_value do_listen(napi_env env, napi_callback_info info) {
-  printf("CALL START\n");
-
-  size_t argc = 1;
-  napi_value args[1];
-  napi_value _this;
-  nsr_srv_t* srv;
-  NAPI_ASSERT(napi_get_cb_info(env, info, &argc, args, &_this, NULL));
+  NAPI_METHOD_HEADER(env, info, 1);
   NAPI_ASSERT(napi_unwrap(env, _this, (void*)(&srv)));
   nsr_srv_start(srv, "0.0.0.0", 8000);
   nsr_callback_trigger(env, srv->callbacks, "connect", 0, NULL);
@@ -33,11 +27,7 @@ static napi_value do_listen(napi_env env, napi_callback_info info) {
 }
 
 static napi_value on(napi_env env, napi_callback_info info) {
-  size_t argc = 2;
-  napi_value args[2];
-  napi_value _this;
-  nsr_srv_t* srv;
-  NAPI_ASSERT(napi_get_cb_info(env, info, &argc, args, &_this, NULL));
+  NAPI_METHOD_HEADER(env, info, 2);
   NAPI_ASSERT(napi_unwrap(env, _this, (void*)(&srv)));
   size_t length;
   NAPI_ASSERT(napi_get_value_string_utf8(env, args[0], NULL, 0, &length));
@@ -51,20 +41,15 @@ static napi_value on(napi_env env, napi_callback_info info) {
 }
 
 static napi_value emit(napi_env env, napi_callback_info info) {
-  size_t argc;
-  napi_value _this;
-  nsr_srv_t* srv;
-  NAPI_ASSERT(napi_get_cb_info(env, info, &argc, NULL, NULL, NULL));
-  napi_value* args = calloc(argc, sizeof(napi_value));
-  NAPI_ASSERT(napi_get_cb_info(env, info, &argc, args, &_this, NULL));
+  NAPI_METHOD_HEADER_VA_START(env, info);
   NAPI_ASSERT(napi_unwrap(env, _this, (void*)(&srv)));
   size_t length;
   NAPI_ASSERT(napi_get_value_string_utf8(env, args[0], NULL, 0, &length));
   char* key = calloc(length + 1, sizeof(char));
   NAPI_ASSERT(napi_get_value_string_utf8(env, args[0], key, length + 1, NULL));
   nsr_callback_trigger(env, srv->callbacks, key, argc - 1, args + 1);
-  free(args);
   free(key);
+  NAPI_METHOD_HEADER_VA_END;
   return NULL;
 }
 
