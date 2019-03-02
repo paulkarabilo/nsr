@@ -69,6 +69,21 @@
     return NULL; \
   } \
 
+
+#define NAPI_METHOD_HEADER_VA_START(env, info)                                  \
+  size_t argc;                                                                  \
+  napi_value _this;                                                             \
+  NAPI_CALL((env), napi_get_cb_info(env, info, &argc, NULL, NULL, NULL));       \
+  napi_value* args = calloc(argc, sizeof(napi_value));                          \
+  NAPI_CALL((env), napi_get_cb_info(env, info, &argc, args, &_this, NULL));
+
+#define NAPI_METHOD_HEADER_WITH_MIN_ARG_ASSERT(env, info, size, m)                     \
+  NAPI_METHOD_HEADER_VA_START(env, info)                                                   \
+  if (argc < size) {                                                                   \
+    napi_throw_error((env), NULL, "method '" m "' expected at least " STR(size) " arguments"); \
+    return NULL; \
+  } \
+
 #define NAPI_METHOD_EXPECT_ARG_TYPE(env, n, type, m) {                                                    \
   napi_valuetype t;                                                                                       \
   NAPI_CALL((env), napi_typeof(env, args[n], &t));                                                        \
@@ -78,12 +93,7 @@
   }                                                                                                       \
 }
 
-#define NAPI_METHOD_HEADER_VA_START(env, info)                                  \
-  size_t argc;                                                                  \
-  napi_value _this;                                                             \
-  NAPI_CALL((env), napi_get_cb_info(env, info, &argc, NULL, NULL, NULL));       \
-  napi_value* args = calloc(argc, sizeof(napi_value));                          \
-  NAPI_CALL((env), napi_get_cb_info(env, info, &argc, args, &_this, NULL));
+
 
 #define NAPI_METHOD_HEADER_VA_END free(args);
 

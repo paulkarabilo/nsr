@@ -31,6 +31,7 @@ static napi_value on(napi_env env, napi_callback_info info) {
   NAPI_METHOD_HEADER_WITH_ARG_ASSERT(env, info, 2, "on");
   NAPI_METHOD_EXPECT_ARG_TYPE(env, 0, string, "on");
   NAPI_METHOD_EXPECT_ARG_TYPE(env, 1, function, "on");
+
   nsr_srv_t* srv;
   NAPI_CALL(env, napi_unwrap(env, _this, (void*)(&srv)));
   size_t length;
@@ -45,7 +46,8 @@ static napi_value on(napi_env env, napi_callback_info info) {
 }
 
 static napi_value emit(napi_env env, napi_callback_info info) {
-  NAPI_METHOD_HEADER_VA_START(env, info);
+  NAPI_METHOD_HEADER_WITH_MIN_ARG_ASSERT(env, info, 1, "emit");
+  NAPI_METHOD_EXPECT_ARG_TYPE(env, 0, string, "emit");
   nsr_srv_t* srv;
   NAPI_CALL(env, napi_unwrap(env, _this, (void*)(&srv)));
   size_t length;

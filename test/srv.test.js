@@ -9,7 +9,7 @@ test('instantiates Server', () => {
     expect(s instanceof nsr.Server).toBe(true);
 });
 
-test('throws error on wron arguments', () => {
+test('throws error on wrong arguments to "on" method', () => {
     const s = new nsr.Server();
     expect(() => s.on('a')).toThrow();
     expect(() => s.on()).toThrow();
@@ -18,6 +18,15 @@ test('throws error on wron arguments', () => {
     expect(() => s.on('a', 1)).toThrow();
     expect(() => s.on('a', () => {}, 'a')).toThrow();
     expect(() => s.on('a', () => {})).not.toThrow()
+});
+
+test('throws error on wrong arguments to "emit" method', () => {
+    const s = new nsr.Server();
+    expect(() => s.emit()).toThrow();
+    expect(() => s.emit(1)).toThrow();
+    expect(() => s.emit(() => {})).toThrow();
+    expect(() => s.emit(s)).toThrow();
+    expect(() => s.emit('a')).not.toThrow();
 });
 
 test('emits events', () => {
