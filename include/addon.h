@@ -8,26 +8,68 @@
 #include <node_api.h>
 #endif
 
-#define NAPI_ASSERT(c) (assert((c) == napi_ok))
-#define DECLARE_NAPI_PROPERTY(name, func)                                \
-  { (name), NULL, (func), NULL, NULL, NULL, napi_default, NULL }
+#define NAPI_VOID
+
+#define THROW_LAST_ERROR(env)                                            \
+  const napi_extended_error_info *err;                                   \
+  napi_get_last_error_info((env), &err);                                 \
+  bool is_pending;                                                       \
+  napi_is_exception_pending((env), &is_pending);                         \
+  /* If an exception is already pending, don't rethrow it */             \
+  if (!is_pending) {                                                     \
+    const char* msg = err->error_message != NULL ?                       \
+      err->error_message :                                               \
+      "empty error message";                                             \
+    napi_throw_error((env), NULL, msg);                                  \
+  }                                                                      \
+
+#define NAPI_ASSERT_BASE(env, a, m, r)                                   \
+  if (!(a)) {                                                            \
+    napi_throw_error((env), NULL, "Exception (" #a "): " m);             \
+    return r;                                                            \
+  }                                                                      \
+
+#define NAPI_ASSERT(env, assertion, message)                             \
+  NAPI_ASSERT_BASE(env, assertion, message, NULL)
+
+#define NAPI_ASSERT_NORET(env, assertion, message)                       \
+  NAPI_ASSERT_BASE(env, assertion, message, NAPI_VOID)
+
+#define NAPI_CALL_BASE(env, c, r)                                        \
+  if ((c) != napi_ok) {                                                  \
+    THROW_LAST_ERROR((env));                                             \
+    return r;                                                            \
+  }                                                                      \
+
+#define NAPI_CALL(env, c)                                                \
+  NAPI_CALL_BASE(env, c, NULL)
+
+#define NAPI_CALL_NORET(env, c)                                          \
+  NAPI_CALL_BASE(env, c, NAPI_VOID)
+
+#define NAPI_PROPERTY(name, f)                                           \
+  { (name), NULL, (f), NULL, NULL, NULL, napi_default, NULL }
+
+#define NAPI_GETTER(name, f)                                             \
+  { (name), NULL, NULL, (f), NULL, NULL, napi_default, NULL }
 
 #define NAPI_METHOD_HEADER(env, info, size) \
   size_t argc = size; \
   napi_value args[size]; \
   napi_value _this; \
   nsr_srv_t* srv; \
-  NAPI_ASSERT(napi_get_cb_info((env), (info), &argc, args, &_this, NULL));
+  NAPI_CALL((env),napi_get_cb_info((env), (info), &argc, args, &_this, NULL));
 
 #define NAPI_METHOD_HEADER_VA_START(env, info) \
   size_t argc; \
   napi_value _this; \
   nsr_srv_t* srv; \
-  NAPI_ASSERT(napi_get_cb_info(env, info, &argc, NULL, NULL, NULL)); \
+  NAPI_CALL((env), napi_get_cb_info(env, info, &argc, NULL, NULL, NULL)); \
   napi_value* args = calloc(argc, sizeof(napi_value)); \
-  NAPI_ASSERT(napi_get_cb_info(env, info, &argc, args, &_this, NULL));
+  NAPI_CALL((env), napi_get_cb_info(env, info, &argc, args, &_this, NULL));
 
 #define NAPI_METHOD_HEADER_VA_END free(args);
+
 
 napi_value create_addon(napi_env env, napi_value exports);
 

@@ -56,7 +56,7 @@ void nsr_callback_item_free(napi_env env, nsr_callback_item_t* item) {
   free(item->key);
   for (int i = 0; i < item->count; i++) {
     if (item->functions[i] != NULL) {
-      NAPI_ASSERT(napi_delete_reference(env, item->functions[i]));
+      NAPI_CALL_NORET((env), napi_delete_reference(env, item->functions[i]));
     }
   }
   nsr_callback_item_t* next = item->next;
@@ -99,13 +99,13 @@ void nsr_callback_trigger(napi_env env, nsr_callback_map_t* map, char* event, in
   int h = hash(event);
   nsr_callback_item_t* item = map->items[h];
   napi_value global;
-  NAPI_ASSERT(napi_get_global(env, &global));
+  NAPI_CALL_NORET((env), napi_get_global(env, &global));
   while (item != NULL) {
     if (strcmp(item->key, event) == 0) {
       for (int i = 0; i < item->count; i++) {
         napi_value fn;
-        NAPI_ASSERT(napi_get_reference_value(env, item->functions[i], &fn));
-        NAPI_ASSERT(napi_call_function(env, global, fn, argc, argv, NULL));
+        NAPI_CALL_NORET((env), napi_get_reference_value(env, item->functions[i], &fn));
+        NAPI_CALL_NORET((env), napi_call_function(env, global, fn, argc, argv, NULL));
       }
     }
     item = item->next;

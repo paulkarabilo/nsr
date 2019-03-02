@@ -10,31 +10,31 @@ void destroy(napi_env env, void* object, void* hint) {
 napi_value Server(napi_env env, napi_callback_info info) {
   napi_value _this;
   struct uv_loop_s* loop;
-  NAPI_ASSERT(napi_get_uv_event_loop(env, &loop));
+  NAPI_CALL(env, napi_get_uv_event_loop(env, &loop));
   nsr_srv_t* srv = nsr_srv_init(loop);
-  NAPI_ASSERT(napi_get_cb_info(env, info, NULL, NULL, &_this, NULL));
-  NAPI_ASSERT(napi_wrap(env, _this, srv, destroy, NULL, NULL));
+  NAPI_CALL(env, napi_get_cb_info(env, info, NULL, NULL, &_this, NULL));
+  NAPI_CALL(env, napi_wrap(env, _this, srv, destroy, NULL, NULL));
   return _this;
 }
 
 static napi_value do_listen(napi_env env, napi_callback_info info) {
   NAPI_METHOD_HEADER(env, info, 1);
-  NAPI_ASSERT(napi_unwrap(env, _this, (void*)(&srv)));
+  NAPI_CALL(env, napi_unwrap(env, _this, (void*)(&srv)));
   nsr_srv_start(srv, "0.0.0.0", 8000);
   nsr_callback_trigger(env, srv->callbacks, "connect", 0, NULL);
-  NAPI_ASSERT(argc == 1);
+  NAPI_CALL(env, argc == 1);
   return NULL;
 }
 
 static napi_value on(napi_env env, napi_callback_info info) {
   NAPI_METHOD_HEADER(env, info, 2);
-  NAPI_ASSERT(napi_unwrap(env, _this, (void*)(&srv)));
+  NAPI_CALL(env, napi_unwrap(env, _this, (void*)(&srv)));
   size_t length;
-  NAPI_ASSERT(napi_get_value_string_utf8(env, args[0], NULL, 0, &length));
+  NAPI_CALL(env, napi_get_value_string_utf8(env, args[0], NULL, 0, &length));
   char* key = calloc(length + 1, sizeof(char));
-  NAPI_ASSERT(napi_get_value_string_utf8(env, args[0], key, length + 1, NULL));
+  NAPI_CALL(env, napi_get_value_string_utf8(env, args[0], key, length + 1, NULL));
   napi_ref ref;
-  NAPI_ASSERT(napi_create_reference(env, args[1], 1, &ref));
+  NAPI_CALL(env, napi_create_reference(env, args[1], 1, &ref));
   nsr_callback_map_add(srv->callbacks, key, ref);
   free(key);
   return NULL;
@@ -42,11 +42,11 @@ static napi_value on(napi_env env, napi_callback_info info) {
 
 static napi_value emit(napi_env env, napi_callback_info info) {
   NAPI_METHOD_HEADER_VA_START(env, info);
-  NAPI_ASSERT(napi_unwrap(env, _this, (void*)(&srv)));
+  NAPI_CALL(env, napi_unwrap(env, _this, (void*)(&srv)));
   size_t length;
-  NAPI_ASSERT(napi_get_value_string_utf8(env, args[0], NULL, 0, &length));
+  NAPI_CALL(env, napi_get_value_string_utf8(env, args[0], NULL, 0, &length));
   char* key = calloc(length + 1, sizeof(char));
-  NAPI_ASSERT(napi_get_value_string_utf8(env, args[0], key, length + 1, NULL));
+  NAPI_CALL(env, napi_get_value_string_utf8(env, args[0], key, length + 1, NULL));
   nsr_callback_trigger(env, srv->callbacks, key, argc - 1, args + 1);
   free(key);
   NAPI_METHOD_HEADER_VA_END;
@@ -56,14 +56,14 @@ static napi_value emit(napi_env env, napi_callback_info info) {
 
 napi_value create_addon(napi_env env, napi_value exports) {
   napi_property_descriptor methods[] = {
-    DECLARE_NAPI_PROPERTY("listen", do_listen),
-    DECLARE_NAPI_PROPERTY("on", on),
-    DECLARE_NAPI_PROPERTY("emit", emit),
+    NAPI_PROPERTY("listen", do_listen),
+    NAPI_PROPERTY("on", on),
+    NAPI_PROPERTY("emit", emit),
   };
   napi_value nsr;
-  NAPI_ASSERT(napi_define_class(env, "Server", -1, Server, NULL, 3, methods, &nsr));
-  NAPI_ASSERT(napi_create_reference(env, nsr, 1, &nsr_ctor));
-  NAPI_ASSERT(napi_set_named_property(env, exports, "Server", nsr));
+  NAPI_CALL(env, napi_define_class(env, "Server", -1, Server, NULL, 3, methods, &nsr));
+  NAPI_CALL(env, napi_create_reference(env, nsr, 1, &nsr_ctor));
+  NAPI_CALL(env, napi_set_named_property(env, exports, "Server", nsr));
 
   return exports;
 }
