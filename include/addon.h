@@ -73,7 +73,7 @@
 #define NAPI_METHOD_HEADER_VA_START(env, info)                                  \
   size_t argc;                                                                  \
   napi_value _this;                                                             \
-  NAPI_CALL((env), napi_get_cb_info(env, info, &argc, NULL, NULL, NULL));       \
+  NAPI_CALL((env), napi_get_cb_info(env, info, &argc, NULL, &_this, NULL));       \
   napi_value* args = calloc(argc, sizeof(napi_value));                          \
   NAPI_CALL((env), napi_get_cb_info(env, info, &argc, args, &_this, NULL));
 
@@ -84,15 +84,15 @@
     return NULL; \
   } \
 
-#define NAPI_METHOD_EXPECT_ARG_TYPE(env, n, type, m) {                                                    \
+#define NAPI_METHOD_EXPECT_ARG_TYPE(env, n, type, m)                                                      \
+  do {                                                                                                    \
   napi_valuetype t;                                                                                       \
   NAPI_CALL((env), napi_typeof(env, args[n], &t));                                                        \
   if (t != (napi_##type)) {                                                                               \
     napi_throw_error((env), NULL, "method '" m "' expected argument " STR(n) " to be of type " STR(type));\
     return NULL;                                                                                          \
   }                                                                                                       \
-}
-
+  } while(0) 
 
 
 #define NAPI_METHOD_HEADER_VA_END free(args);
