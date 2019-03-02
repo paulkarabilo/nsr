@@ -8,6 +8,9 @@
 #include <node_api.h>
 #endif
 
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
+
 #define NAPI_VOID
 
 #define THROW_LAST_ERROR(env)                                            \
@@ -53,19 +56,33 @@
 #define NAPI_GETTER(name, f)                                             \
   { (name), NULL, NULL, (f), NULL, NULL, napi_default, NULL }
 
-#define NAPI_METHOD_HEADER(env, info, size) \
-  size_t argc = size; \
-  napi_value args[size]; \
-  napi_value _this; \
-  nsr_srv_t* srv; \
+#define NAPI_METHOD_HEADER(env, info, size)                                     \
+  size_t argc = (size);                                                           \
+  napi_value args[(size)];                                                        \
+  napi_value _this;                                                             \
   NAPI_CALL((env),napi_get_cb_info((env), (info), &argc, args, &_this, NULL));
 
-#define NAPI_METHOD_HEADER_VA_START(env, info) \
-  size_t argc; \
-  napi_value _this; \
-  nsr_srv_t* srv; \
-  NAPI_CALL((env), napi_get_cb_info(env, info, &argc, NULL, NULL, NULL)); \
-  napi_value* args = calloc(argc, sizeof(napi_value)); \
+#define NAPI_METHOD_HEADER_WITH_ARG_ASSERT(env, info, size, m)                     \
+  NAPI_METHOD_HEADER(env, info, size)                                                          \
+  if (argc != size) {\
+    napi_throw_error((env), NULL, "method '" m "' expected " STR(size) " arguments"); \
+    return NULL; \
+  } \
+
+#define NAPI_METHOD_EXPECT_ARG_TYPE(env, n, type, m) {                                                    \
+  napi_valuetype t;                                                                                       \
+  NAPI_CALL((env), napi_typeof(env, args[n], &t));                                                        \
+  if (t != (napi_##type)) {                                                                               \
+    napi_throw_error((env), NULL, "method '" m "' expected argument " STR(n) " to be of type " STR(type));\
+    return NULL;                                                                                          \
+  }                                                                                                       \
+}
+
+#define NAPI_METHOD_HEADER_VA_START(env, info)                                  \
+  size_t argc;                                                                  \
+  napi_value _this;                                                             \
+  NAPI_CALL((env), napi_get_cb_info(env, info, &argc, NULL, NULL, NULL));       \
+  napi_value* args = calloc(argc, sizeof(napi_value));                          \
   NAPI_CALL((env), napi_get_cb_info(env, info, &argc, args, &_this, NULL));
 
 #define NAPI_METHOD_HEADER_VA_END free(args);

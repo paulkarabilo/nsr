@@ -19,6 +19,7 @@ napi_value Server(napi_env env, napi_callback_info info) {
 
 static napi_value do_listen(napi_env env, napi_callback_info info) {
   NAPI_METHOD_HEADER(env, info, 1);
+  nsr_srv_t* srv;
   NAPI_CALL(env, napi_unwrap(env, _this, (void*)(&srv)));
   nsr_srv_start(srv, "0.0.0.0", 8000);
   nsr_callback_trigger(env, srv->callbacks, "connect", 0, NULL);
@@ -27,7 +28,10 @@ static napi_value do_listen(napi_env env, napi_callback_info info) {
 }
 
 static napi_value on(napi_env env, napi_callback_info info) {
-  NAPI_METHOD_HEADER(env, info, 2);
+  NAPI_METHOD_HEADER_WITH_ARG_ASSERT(env, info, 2, "on");
+  NAPI_METHOD_EXPECT_ARG_TYPE(env, 0, string, "on");
+  NAPI_METHOD_EXPECT_ARG_TYPE(env, 1, function, "on");
+  nsr_srv_t* srv;
   NAPI_CALL(env, napi_unwrap(env, _this, (void*)(&srv)));
   size_t length;
   NAPI_CALL(env, napi_get_value_string_utf8(env, args[0], NULL, 0, &length));
@@ -42,6 +46,7 @@ static napi_value on(napi_env env, napi_callback_info info) {
 
 static napi_value emit(napi_env env, napi_callback_info info) {
   NAPI_METHOD_HEADER_VA_START(env, info);
+  nsr_srv_t* srv;
   NAPI_CALL(env, napi_unwrap(env, _this, (void*)(&srv)));
   size_t length;
   NAPI_CALL(env, napi_get_value_string_utf8(env, args[0], NULL, 0, &length));

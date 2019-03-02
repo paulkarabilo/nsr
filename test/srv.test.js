@@ -9,6 +9,17 @@ test('instantiates Server', () => {
     expect(s instanceof nsr.Server).toBe(true);
 });
 
+test('throws error on wron arguments', () => {
+    const s = new nsr.Server();
+    expect(() => s.on('a')).toThrow();
+    expect(() => s.on()).toThrow();
+    expect(() => s.on('a', 'a')).toThrow();
+    expect(() => s.on(1, 1)).toThrow();
+    expect(() => s.on('a', 1)).toThrow();
+    expect(() => s.on('a', () => {}, 'a')).toThrow();
+    expect(() => s.on('a', () => {})).not.toThrow()
+});
+
 test('emits events', () => {
     const s = new nsr.Server();
     const fn = jest.fn();
