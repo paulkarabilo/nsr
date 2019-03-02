@@ -1,9 +1,10 @@
 #include "srv.h"
-
+#include "addon.h"
 #include <assert.h>
 
-nsr_srv_t* nsr_srv_init(uv_loop_t* loop) {
+nsr_srv_t* nsr_srv_init(uv_loop_t* loop, napi_env env) {
   nsr_srv_t* srv = malloc(sizeof(nsr_srv_t));
+  srv->env = env;
   srv->callbacks = nsr_callback_map_init();
   srv->loop = loop;
   return srv;
@@ -35,15 +36,17 @@ void on_wrote_buf(uv_write_t* req, int status) {
 }
 
 void on_peer_read(uv_stream_t* client, ssize_t nread, const uv_buf_t* buf) {
+  nsr_srv_t* srv = (nsr_srv_t*)client->data;
+
   if (nread < 0) {
     if (nread != UV_EOF) {
         fprintf(stderr, "Read error %s\n", uv_err_name(nread));
         uv_close((uv_handle_t*) client, NULL);
     }
   } else if (nread > 0) {
-      uv_write_t *req = (uv_write_t *) malloc(sizeof(uv_write_t));
-      uv_buf_t wrbuf = uv_buf_init(buf->base, nread);
-      uv_write(req, client, &wrbuf, 1, on_wrote_buf);
+      napi_value args[1];
+      NAPI_CALL_NORET(srv->env, napi_create_string_utf8(srv->env, buf->base, nread, args));
+      nsr_callback_trigger(srv->env, srv->callbacks, "request", 1, args);
   }
 
   if (buf->base) {
@@ -56,8 +59,9 @@ void on_connect(uv_stream_t* srv_stream, int status) {
   UV_CALL_NORET(status, "Peer connection error: %s\n");
 
   uv_tcp_t* client = (uv_tcp_t*)malloc(sizeof(*client));
+
   UV_CALL_NORET(uv_tcp_init(uv_default_loop(), client), "uv_tcp_init %s");
-  client->data = NULL;
+  client->data = srv_stream->data;
 
   if (uv_accept(srv_stream, (uv_stream_t*)client) == 0) {
     UV_CALL_NORET(uv_read_start((uv_stream_t*)client, on_alloc_buffer, on_peer_read), "uv_read_start: %s");
@@ -70,7 +74,7 @@ int nsr_srv_start(nsr_srv_t* srv, char* host, int port) {
   uv_tcp_t srv_stream;
   int rc;
   UV_CALL(uv_tcp_init(srv->loop, &srv_stream), "init %s");
-
+  srv_stream.data = (void*)srv;
   struct sockaddr_in addr;
   UV_CALL(uv_ip4_addr(host, port, &addr), "ip4addr %s");
   UV_CALL(uv_tcp_bind(&srv_stream, (const struct sockaddr*)&addr, 0), "bind %s");

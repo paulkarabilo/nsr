@@ -42,10 +42,11 @@ void bind_host_port_cb_from_args(napi_env env, int argc, napi_value* args, nsr_s
       callback_index = 1;
     }
 
-    if(callback_index > 0) {
+    if(callback_index >= 0) {
       napi_ref ref;
       NAPI_CALL_NORET(env, napi_create_reference(env, args[callback_index], 1, &ref));
       nsr_callback_map_add(srv->callbacks, "request", ref);
+      host_or_port_bound = true;
     }
 
     if ((callback_index == 1 || callback_index == -1) && value_of_type(env, args[0], napi_object)) {
@@ -53,13 +54,11 @@ void bind_host_port_cb_from_args(napi_env env, int argc, napi_value* args, nsr_s
         if (value_of_type(env, _host, napi_string)) {
           host = value_to_str(env, _host);
           free_host = true;
-          host_or_port_bound = true;
         }
       }
       if (napi_get_named_property(env, args[0], "port", &_port) == napi_ok) {
         if (value_of_type(env, _port, napi_number)) {
           NAPI_CALL_NORET(env, napi_get_value_int64(env, _port, &port))
-          host_or_port_bound = true;
         }
       }
     }
@@ -78,7 +77,7 @@ napi_value Server(napi_env env, napi_callback_info info) {
   struct uv_loop_s* loop;
   NAPI_CALL(env, napi_get_uv_event_loop(env, &loop));
 
-  nsr_srv_t* srv = nsr_srv_init(loop);
+  nsr_srv_t* srv = nsr_srv_init(loop, env);
   NAPI_CALL(env, napi_wrap(env, _this, srv, destroy, NULL, NULL));
 
   bind_host_port_cb_from_args(env, argc, args, srv);
