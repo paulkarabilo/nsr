@@ -14,6 +14,7 @@ typedef struct nsr_srv_s {
   int port;
   char* host;
   uv_loop_t* loop;
+  uv_tcp_t* handle;
   nsr_callback_map_t* callbacks;
   napi_env env;
 } nsr_srv_t;
@@ -29,5 +30,6 @@ typedef struct nsr_srv_s {
 }
 
 nsr_srv_t* nsr_srv_init(uv_loop_t* loop, napi_env env);
-int nsr_srv_start(nsr_srv_t* src, char* host, int port);
+int nsr_srv_start(nsr_srv_t* srv, char* host, int port);
+void nsr_srv_close(nsr_srv_t* srv);
 void nsr_srv_free(napi_env env, nsr_srv_t* srv);

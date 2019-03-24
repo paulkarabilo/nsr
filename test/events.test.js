@@ -1,4 +1,4 @@
-const nsr = require('../');
+const nsr = require('..');
 
 test('has Server constructor function', () => {
     expect(typeof nsr.Server).toBe('function');

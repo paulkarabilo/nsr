@@ -28,28 +28,10 @@ void bind_host_port_cb_from_args(napi_env env, int argc, napi_value* args, nsr_s
   char* host = "0.0.0.0";
   int64_t port = 8080;
 
+  bool free_host = false;
   if (argc > 0) {
-    bool free_host = false;
-    bool host_or_port_bound = false;
 
-    short callback_index = -1;
-
-    if(value_of_type(env, args[0], napi_function)) {
-      callback_index = 0;
-    }
-
-    if(argc > 1 && value_of_type(env, args[1], napi_function)) {
-      callback_index = 1;
-    }
-
-    if(callback_index >= 0) {
-      napi_ref ref;
-      NAPI_CALL_NORET(env, napi_create_reference(env, args[callback_index], 1, &ref));
-      nsr_callback_map_add(srv->callbacks, "request", ref);
-      host_or_port_bound = true;
-    }
-
-    if ((callback_index == 1 || callback_index == -1) && value_of_type(env, args[0], napi_object)) {
+    if (value_of_type(env, args[0], napi_object)) {
       if (napi_get_named_property(env, args[0], "host", &_host) == napi_ok) {
         if (value_of_type(env, _host, napi_string)) {
           host = value_to_str(env, _host);
@@ -62,13 +44,11 @@ void bind_host_port_cb_from_args(napi_env env, int argc, napi_value* args, nsr_s
         }
       }
     }
-
-    if (host_or_port_bound) {
-      nsr_srv_start(srv, host, (int)port);
-    }
-
-    if (free_host) free(host);
   }
+
+  nsr_srv_start(srv, host, (int)port);
+
+  if (free_host) free(host);
 }
 
 napi_value Server(napi_env env, napi_callback_info info) {
@@ -80,7 +60,11 @@ napi_value Server(napi_env env, napi_callback_info info) {
   nsr_srv_t* srv = nsr_srv_init(loop, env);
   NAPI_CALL(env, napi_wrap(env, _this, srv, destroy, NULL, NULL));
 
-  bind_host_port_cb_from_args(env, argc, args, srv);
+  if (argc > 0 && value_of_type(env, args[0], napi_function)) {
+    napi_ref ref;
+    NAPI_CALL_NORET(env, napi_create_reference(env, args[0], 1, &ref));
+    nsr_callback_map_add(srv->callbacks, "request", ref);
+  }
 
   NAPI_METHOD_HEADER_VA_END;
 
@@ -125,7 +109,19 @@ static napi_value emit(napi_env env, napi_callback_info info) {
   char* key = value_to_str(env, args[0]);
 
   nsr_callback_trigger(env, srv->callbacks, key, argc - 1, args + 1);
+
   free(key);
+
+  NAPI_METHOD_HEADER_VA_END;
+  return NULL;
+}
+
+static napi_value do_close(napi_env env, napi_callback_info info) {
+  NAPI_METHOD_HEADER_VA_START(env, info);
+  printf("CLOSE\n");
+  nsr_srv_t* srv;
+  NAPI_CALL(env, napi_unwrap(env, _this, (void*)(&srv)));
+  nsr_srv_close(srv);
 
   NAPI_METHOD_HEADER_VA_END;
   return NULL;
@@ -137,9 +133,11 @@ napi_value create_addon(napi_env env, napi_value exports) {
     NAPI_PROPERTY("listen", do_listen),
     NAPI_PROPERTY("on", on),
     NAPI_PROPERTY("emit", emit),
+    NAPI_PROPERTY("close", do_close)
   };
+
   napi_value nsr;
-  NAPI_CALL(env, napi_define_class(env, "Server", -1, Server, NULL, 3, methods, &nsr));
+  NAPI_CALL(env, napi_define_class(env, "Server", -1, Server, NULL, 4, methods, &nsr));
   NAPI_CALL(env, napi_create_reference(env, nsr, 1, &nsr_ctor));
   NAPI_CALL(env, napi_set_named_property(env, exports, "Server", nsr));
 
