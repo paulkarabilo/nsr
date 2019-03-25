@@ -2,12 +2,17 @@ const nsr = require('..');
 const net = require('net');
 
 describe('server', () => {
-  test('accepts options', () => {
-    // const cb = jest.fn();
-    // const s = new nsr.Server(cb);
-    // s.listen();
-    // const c = net.createConnection({port: 8080})
-    // s.close();
-    // expect(cb).toHaveBeenCalled();
+  test('accepts options', done => {
+    const s = new nsr.Server((m) => {
+      expect(m).toBe('world!\r\n');
+      s.close();
+      c.destroy();
+      done();
+    });
+    s.listen();
+    const c = net.connect({port: 8080}, () => {
+      c.write('world!\r\n');
+      // expect(cb).toHaveBeenCalled();
+    });
   });
 });
