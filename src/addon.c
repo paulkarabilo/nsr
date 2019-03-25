@@ -118,7 +118,6 @@ static napi_value emit(napi_env env, napi_callback_info info) {
 
 static napi_value do_close(napi_env env, napi_callback_info info) {
   NAPI_METHOD_HEADER_VA_START(env, info);
-  printf("CLOSE\n");
   nsr_srv_t* srv;
   NAPI_CALL(env, napi_unwrap(env, _this, (void*)(&srv)));
   nsr_srv_close(srv);
