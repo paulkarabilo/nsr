@@ -62,7 +62,7 @@ napi_value Server(napi_env env, napi_callback_info info) {
 
   if (argc > 0 && value_of_type(env, args[0], napi_function)) {
     napi_ref ref;
-    NAPI_CALL_NORET(env, napi_create_reference(env, args[0], 1, &ref));
+    NAPI_CALL(env, napi_create_reference(env, args[0], 1, &ref));
     nsr_callback_map_add(srv->callbacks, "request", ref);
   }
 
